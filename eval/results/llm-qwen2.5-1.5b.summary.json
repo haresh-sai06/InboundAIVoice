@@ -1,0 +1,28 @@
+{
+  "mode": "llm",
+  "n_turns": 21,
+  "n_dialogues": 8,
+  "tool_accuracy": 0.3333,
+  "tool_correct": 7,
+  "per_tool_accuracy": {
+    "null": 0.3333,
+    "check_availability": 0.0,
+    "save_booking_intent": 0.75,
+    "end_call": 0.2,
+    "transfer_call": 0.5,
+    "get_business_hours": 0.0
+  },
+  "booking_arg_prf": {
+    "precision": 0.4167,
+    "recall": 0.4545,
+    "f1": 0.4348,
+    "tp": 5,
+    "fp": 7,
+    "fn": 6
+  },
+  "latency_s": {
+    "mean": 13.922,
+    "p50": 8.619,
+    "p95": 46.3672
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "mode": "heuristic",
+  "n_turns": 21,
+  "n_dialogues": 8,
+  "tool_accuracy": 1.0,
+  "tool_correct": 21,
+  "per_tool_accuracy": {
+    "null": 1.0,
+    "check_availability": 1.0,
+    "save_booking_intent": 1.0,
+    "end_call": 1.0,
+    "transfer_call": 1.0,
+    "get_business_hours": 1.0
+  },
+  "booking_arg_prf": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "tp": 11,
+    "fp": 0,
+    "fn": 0
+  },
+  "latency_s": {
+    "mean": 0.0,
+    "p50": 0.0,
+    "p95": 0.0001
+  }
+}

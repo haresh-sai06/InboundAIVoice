@@ -1,135 +1,119 @@
-# LiveKit Outbound Calling Agent
+<div align="center">
 
-This project provides a production-ready solution for making outbound AI phone calls using LiveKit and Vobiz SIP trunks. The AI agent can place calls, wait for an answer, and hold a natural conversation with the recipient.
+# InboundAIVoice
 
-## 📂 Project Structure
+### LiveKit outbound / inbound AI calling agent (fork)
 
-| File | Description |
-|------|-------------|
-| `agent.py` | The main AI worker. It runs in the background, waits for dispatch jobs, and places outbound calls. |
-| `make_call.py` | A utility script to trigger calls. It dispatches the agent to a unique room with the target phone number. |
-| `setup_trunk.py` | Script to configure the LiveKit SIP Trunk with Vobiz credentials. |
-| `transfer_call.md` | Guide for configuring and using SIP transfers. |
-| `.env.example` | Template for environment variables and secrets. |
-| `requirements.txt` | List of Python dependencies. |
+*Multilingual sales voice agent: Sarvam STT/TTS, Cal.com booking tools, Supabase call logs, Telegram alerts.*
 
----
+![Status](https://img.shields.io/badge/status-working%20fork-green)
+![License](https://img.shields.io/badge/license-upstream-lightgrey)
+![Stack](https://img.shields.io/badge/stack-LiveKit%20Agents%20·%20Sarvam%20·%20OpenAI%20·%20Supabase-cyan)
 
-## 🚀 Installation & Setup
+</div>
 
-### 1. Prerequisites
-
-Ensure you have the following installed:
-- **Python 3.9+**
-- **uv** (recommended for fast package management) - [Install uv](https://github.com/astral-sh/uv)
-
-### 2. LiveKit & Vobiz Credentials
-
-You will need the following accounts:
-
-1.  **LiveKit Cloud Account**: Get your Project URL, API Key, and Secret from [cloud.livekit.io](https://cloud.livekit.io).
-2.  **Vobiz Account**:
-    *   Log in to the **Vobiz Console Platform**.
-    *   Navigate to your SIP Trunk settings to find:
-        *   SIP Domain (e.g., `xxx.sip.vobiz.ai`)
-        *   Username & Password
-    *   Get your DID Number (e.g., `+91...`).
-3.  **OpenAI / Deepgram Keys**:
-    *   OpenAI API Key (for LLM and optional TTS)
-    *   Deepgram API Key (for STT)
-
-### 3. Installation Steps
-
-1.  **Clone/Copy the project** to your local machine.
-2.  **Open a terminal** in the project folder (`livekit-outbound-calls`).
-3.  **Install dependencies** using `uv`:
-
-    ```powershell
-    # Create virtual environment
-    uv venv
-
-    # Install required packages
-    uv pip install -r requirements.txt
-    ```
-
-### 4. Configuration
-
-1.  **Create your env file**:
-    ```powershell
-    cp .env.example .env.local
-    ```
-2.  **Edit `.env.local`** and fill in your keys:
-    ```env
-    LIVEKIT_URL=wss://...
-    LIVEKIT_API_KEY=...
-    LIVEKIT_API_SECRET=...
-    OPENAI_API_KEY=...
-    DEEPGRAM_API_KEY=...
-    
-    # SIP Config
-    VOBIZ_SIP_DOMAIN=...
-    VOBIZ_USERNAME=...
-    VOBIZ_PASSWORD=...
-    VOBIZ_OUTBOUND_NUMBER=+91...
-    ```
-3.  **Set Trunk ID in `agent.py`**:
-    *   If you haven't created a trunk yet, you'll need to create one using the LiveKit CLI or setup script.
-    *   Once created, get the `TRUNK_ID` (starts with `ST_...`).
-    *   Open `agent.py` and update line 25:
-        ```python
-        OUTBOUND_TRUNK_ID = "ST_xxxxxxxxx"
-        ```
+> **This is a fork** of [toprmrproducer/InboundAIVoice](https://github.com/toprmrproducer/InboundAIVoice). PRs from this branch target **`haresh-sai06/InboundAIVoice`**, not upstream. Beyond the upstream scaffold, this fork adds Sarvam STT/TTS, Supabase logging, Cal.com / Google Calendar tools, rate limiting, Sentry, a FastAPI config UI, and (this PR) an **offline tool-routing eval harness with measured numbers**.
 
 ---
 
-## 📞 How to Use
+## Problem
 
-### Step 1: Start the Background Agent
+Outbound AI sales calls need more than an LLM in a Twilio loop: low-latency multilingual STT/TTS, calendar booking tools, durable call logs, and a way to **measure** whether the agent picks the right tool before you burn SIP minutes.
 
-Open a PowerShell terminal and run:
+## Architecture
 
-```powershell
-uv run python agent.py start
+```mermaid
+flowchart TB
+  subgraph trigger [Trigger]
+    MC[make_call.py / LiveKit dispatch]
+  end
+  subgraph worker [agent.py worker]
+    ENT[entrypoint] --> CFG[get_live_config]
+    CFG --> SES[AgentSession<br/>Silero VAD · Sarvam STT/TTS · OpenAI LLM]
+    SES --> TOOLS[AgentTools<br/>check_availability · save_booking_intent<br/>get_business_hours · transfer_call · end_call]
+  end
+  TOOLS --> CAL[Cal.com / Google Calendar]
+  TOOLS --> SIP[LiveKit SIP trunk]
+  SES --> DB[(Supabase call logs + transcripts)]
+  SES --> TG[Telegram notify]
+  UI[ui_server.py FastAPI dashboard] --> CFG
+  EVAL[eval/tool_router.py<br/>heuristic or LLM] -.->|offline CI| GOLD[golden_dialogues.json]
 ```
 
-*   **Wait** until you see the message: `INFO:livekit.agents:registered worker ...`
-*   **Keep this terminal open.** This agent will listen for call requests.
+**Design decisions / trade-offs**
 
-### Step 2: Make a Call
-
-Open a **separate** terminal window (keep the first one running) and run:
-
-```powershell
-uv run python make_call.py --to +919988776655 (your number)
-```
-
-*(Replace `+919988776655` with the actual number you want to call)*
-
-### What Happens Next?
-
-1.  `make_call.py` sends a "dispatch" request to LiveKit.
-2.  LiveKit assigns the job to your running `agent.py`.
-3.  The agent joins a secure room (e.g., `call-9148...`).
-4.  The agent dials the phone number via the Vobiz SIP trunk.
-5.  **When the user answers**, the agent will start listening and speaking.
-6.  **Call Transfer**: You can ask the agent to transfer you.
-    *   *Default*: "Transfer me." -> Transfers to the configured default number.
-    *   *Custom*: "Transfer me to +1..." -> Transfers to the specific number.
-    *   For detailed setup and troubleshooting, see [transfer_call.md](transfer_call.md).
+| Decision | Why | Trade-off |
+|---|---|---|
+| Sarvam for STT/TTS (hi-IN / multilingual) | Indian language coverage the default OpenAI voice stack lacks | Extra vendor key; English-only demos can swap providers via config |
+| Tools on the LiveKit `Agent` (not a separate HTTP bot) | Same session owns speech + side effects | Harder to unit-test without extracting a pure router (done in `eval/`) |
+| Heuristic tool router for CI | No LiveKit / OpenAI / SIP needed to gate PRs | Golden-set scores ≠ live-call quality; LLM mode reported separately |
+| Secrets only via env / `.env.local` | `config.json` on this branch is scrubbed | You must copy `.env.example` before running the worker |
 
 ---
 
-## 🛠️ Troubleshooting
+## Results (measured, offline)
 
-- **Agent not starting?**
-    - Check `.env.local` is correct.
-    - Ensure dependencies are installed (`uv pip install ...`).
+Dataset: [`eval/golden_dialogues.json`](eval/golden_dialogues.json) — **8 dialogues / 21 turns** with expected tools + booking args.  
+The router under test is [`eval/tool_router.py`](eval/tool_router.py) (same tool names as `AgentTools` in `agent.py`).
 
-- **Call not connecting?**
-    - Check `OUTBOUND_TRUNK_ID` in `agent.py`.
-    - Verify your Vobiz SIP credentials and balance.
-    - Ensure the phone number includes the country code (e.g., `+91`).
+| Mode | Tool accuracy | Booking arg F1 | Latency mean / p95 |
+|---|---|---|---|
+| **Heuristic (CI default)** | **1.00** (21/21) | **1.00** | &lt;1 ms / &lt;1 ms |
+| LLM: Qwen2.5-1.5B-Instruct Q4 (llama.cpp CPU) | 0.33 (7/21) | 0.43 | 13.9 s / 46.4 s |
 
-- **No audio?**
-    - Check OpenAI/Deepgram API keys.
-    - Check the agent logs for errors.
+Reproduce:
+
+```bash
+python eval/run_eval.py --mode heuristic --out eval/results/summary.json
+# optional LLM mode
+LLM_BASE_URL=http://localhost:11434/v1 LLM_API_KEY=ollama LLM_MODEL=qwen2.5:7b \
+  python eval/run_eval.py --mode llm --out eval/results/llm.json
+```
+
+**How to read this.** Heuristic 100% means the rule router covers this golden set — use it as a **regression gate**, then replace / enrich the golden set as real call transcripts arrive. The 1.5B LLM score shows why tool routing for voice agents needs either stronger models or the heuristic scaffold; re-run with `gpt-4o-mini` / `qwen2.5:7b` and update the table (do not invent numbers).
+
+Live SIP call metrics (ASR WER, barge-in recovery, booking completion rate) are **TBD** — they need LiveKit + Sarvam + Cal.com credentials that are not present in this environment.
+
+---
+
+## Quickstart (live calls)
+
+```bash
+cp .env.example .env.local   # fill LiveKit, OpenAI, Sarvam, Cal.com, Supabase
+uv venv && source .venv/bin/activate
+uv pip install -r requirements.txt
+python agent.py start        # worker
+python ui_server.py          # dashboard
+python make_call.py +91XXXXXXXXXX
+```
+
+See also: [`QUICKSTART.md`](QUICKSTART.md), [`LOCAL_STARTUP_GUIDE.md`](LOCAL_STARTUP_GUIDE.md), [`SOP.md`](SOP.md).
+
+### Tests (no cloud keys)
+
+```bash
+pip install pytest
+pytest -q tests
+```
+
+### CI
+
+Template: [`ci/github-actions.yml`](ci/github-actions.yml) — copy to `.github/workflows/ci.yml` (GitHub OAuth tokens without the `workflow` scope cannot push files under `.github/workflows/`).
+
+---
+
+## Security note (this PR)
+
+`config.json` previously contained live Supabase credentials. **This branch scrubs all secret fields to empty strings.** Rotate any keys that were ever committed to `main`, and keep secrets in `.env.local` (gitignored).
+
+---
+
+## Tech stack
+
+LiveKit Agents · Sarvam STT/TTS · OpenAI LLM · Silero VAD · Cal.com / Google Calendar · Supabase · FastAPI UI · Telegram · Sentry · pytest eval harness
+
+---
+
+## License
+
+Follows upstream. Fork maintained at `haresh-sai06/InboundAIVoice`.

@@ -19,7 +19,7 @@
     "vobiz_password": "",
     "vobiz_outbound_number": "",
     "sip_trunk_id": "",
-    "supabase_url": "https://yplraarslqarwuedzlfr.supabase.co",
-    "supabase_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwbHJhYXJzbHFhcnd1ZWR6bGZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNjQwNjMsImV4cCI6MjA4Njg0MDA2M30.YDQsu_sc_QF4v6wpe8uW8u-OlvMludrnAqBdN8AMHoI",
+    "supabase_url": "",
+    "supabase_key": "",
     "first_line": "Namaste! This is Aryan from RapidX AI \u2014 we help businesses automate with AI. Hmm, may I ask what kind of business you run?"
 }
