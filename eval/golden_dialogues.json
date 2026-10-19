@@ -1,0 +1,172 @@
+[
+  {
+    "id": "d01_happy_book",
+    "turns": [
+      {
+        "role": "user",
+        "text": "Hi, I run a dental clinic in Pune.",
+        "expect_tool": null
+      },
+      {
+        "role": "user",
+        "text": "Our biggest pain is missed follow-up calls after appointments.",
+        "expect_tool": null
+      },
+      {
+        "role": "user",
+        "text": "Sure, let's book a demo tomorrow afternoon.",
+        "expect_tool": "check_availability",
+        "expect_args": {
+          "date_hint": "tomorrow"
+        }
+      },
+      {
+        "role": "user",
+        "text": "3pm works. My name is Riya Sharma, email riya@smilecare.in",
+        "expect_tool": "save_booking_intent",
+        "expect_args": {
+          "name": "Riya Sharma",
+          "email": "riya@smilecare.in"
+        }
+      },
+      {
+        "role": "user",
+        "text": "Thanks, bye!",
+        "expect_tool": "end_call"
+      }
+    ]
+  },
+  {
+    "id": "d02_transfer_human",
+    "turns": [
+      {
+        "role": "user",
+        "text": "Hello, can I speak to the founder please?",
+        "expect_tool": "transfer_call"
+      }
+    ]
+  },
+  {
+    "id": "d03_hours_then_book",
+    "turns": [
+      {
+        "role": "user",
+        "text": "What are your business hours?",
+        "expect_tool": "get_business_hours"
+      },
+      {
+        "role": "user",
+        "text": "Ok book me a slot on 2026-10-21",
+        "expect_tool": "check_availability",
+        "expect_args": {
+          "date_hint": "2026-10-21"
+        }
+      },
+      {
+        "role": "user",
+        "text": "I'm Amit, amit@hotelroyal.com — confirm the booking",
+        "expect_tool": "save_booking_intent",
+        "expect_args": {
+          "name": "Amit",
+          "email": "amit@hotelroyal.com"
+        }
+      },
+      {
+        "role": "user",
+        "text": "Perfect, goodbye",
+        "expect_tool": "end_call"
+      }
+    ]
+  },
+  {
+    "id": "d04_objection_no_tool",
+    "turns": [
+      {
+        "role": "user",
+        "text": "This sounds too expensive for us.",
+        "expect_tool": null
+      },
+      {
+        "role": "user",
+        "text": "Hmm, maybe send me something later. Not booking now.",
+        "expect_tool": null
+      },
+      {
+        "role": "user",
+        "text": "Alright bye",
+        "expect_tool": "end_call"
+      }
+    ]
+  },
+  {
+    "id": "d05_tamil_book",
+    "turns": [
+      {
+        "role": "user",
+        "text": "Vanakkam, naan Chennai la real estate business run panren.",
+        "expect_tool": null
+      },
+      {
+        "role": "user",
+        "text": "Demo book pannunga please, naan Karthik, karthik@homes.in",
+        "expect_tool": "save_booking_intent",
+        "expect_args": {
+          "name": "Karthik",
+          "email": "karthik@homes.in"
+        }
+      },
+      {
+        "role": "user",
+        "text": "Nandri, poitu varen",
+        "expect_tool": "end_call"
+      }
+    ]
+  },
+  {
+    "id": "d06_availability_today",
+    "turns": [
+      {
+        "role": "user",
+        "text": "Do you have any slots open today?",
+        "expect_tool": "check_availability",
+        "expect_args": {
+          "date_hint": "today"
+        }
+      },
+      {
+        "role": "user",
+        "text": "Never mind, transfer me to sales",
+        "expect_tool": "transfer_call"
+      }
+    ]
+  },
+  {
+    "id": "d07_email_only_incomplete",
+    "turns": [
+      {
+        "role": "user",
+        "text": "Book a call, my email is onlyhalf@",
+        "expect_tool": null
+      },
+      {
+        "role": "user",
+        "text": "Sorry, email is onlyhalf@example.com and I'm Priya",
+        "expect_tool": "save_booking_intent",
+        "expect_args": {
+          "name": "Priya",
+          "email": "onlyhalf@example.com"
+        }
+      }
+    ]
+  },
+  {
+    "id": "d08_hinglish_end",
+    "turns": [
+      {
+        "role": "user",
+        "text": "Acha theek hai, bas itna jaanna tha. Alvida!",
+        "expect_tool": "end_call"
+      }
+    ]
+  }
+]
